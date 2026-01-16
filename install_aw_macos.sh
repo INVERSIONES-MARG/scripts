@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# ===== CONFIG =====
+# ================= CONFIG =================
 AW_VERSION="v0.13.2"
 SERVER_URL="https://activitywatch.invmarg.com"
 INSTALL_DIR="$HOME/.activitywatch"
 CONFIG_DIR="$HOME/.config/activitywatch"
 HOSTNAME="$(scutil --get LocalHostName)"
 
-# ===== DEPENDENCIAS =====
+# ================= DEPENDENCIAS =================
 if ! command -v unzip &> /dev/null; then
     echo "Instalando unzip..."
     brew install unzip
@@ -18,14 +18,14 @@ if ! command -v curl &> /dev/null; then
     brew install curl
 fi
 
-# ===== DESCARGA =====
+# ================= DESCARGA =================
 mkdir -p "$INSTALL_DIR"
 cd /tmp
 curl -L -o aw.zip "https://github.com/ActivityWatch/activitywatch/releases/download/$AW_VERSION/activitywatch-$AW_VERSION-macos-x86_64.zip"
 unzip -o aw.zip
 mv activitywatch/* "$INSTALL_DIR"
 
-# ===== CONFIGURACIÓN =====
+# ================= CONFIGURACIÓN =================
 mkdir -p "$CONFIG_DIR"
 
 # aw-server.toml
@@ -48,7 +48,18 @@ exclude_title = true
 strategy_macos = "swift"
 EOF
 
-# ===== AUTOSTART =====
+# ================= SCRIPT DE ARRANQUE =================
+STARTUP_SCRIPT="$INSTALL_DIR/start_aw.sh"
+cat > "$STARTUP_SCRIPT" <<EOF
+#!/usr/bin/env bash
+# Lanza ActivityWatch en background
+"$INSTALL_DIR/aw-server-rust/aw-server-rust" &
+"$INSTALL_DIR/aw-watcher-afk/aw-watcher-afk" &
+"$INSTALL_DIR/aw-watcher-window/aw-watcher-window" &
+EOF
+chmod +x "$STARTUP_SCRIPT"
+
+# ================= AUTOSTART =================
 PLIST="$HOME/Library/LaunchAgents/com.activitywatch.client.plist"
 cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -60,20 +71,19 @@ cat > "$PLIST" <<EOF
   <string>com.activitywatch.client</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/bash</string>
-    <string>-c</string>
-    <string>
-      $INSTALL_DIR/aw-server-rust/aw-server-rust & 
-      $INSTALL_DIR/aw-watcher-afk/aw-watcher-afk & 
-      $INSTALL_DIR/aw-watcher-window/aw-watcher-window
-    </string>
+    <string>$STARTUP_SCRIPT</string>
   </array>
   <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
   <true/>
 </dict>
 </plist>
 EOF
 
+# Carga el LaunchAgent
+launchctl unload "$PLIST" 2>/dev/null || true
 launchctl load "$PLIST"
 
-echo "✅ ActivityWatch instalado y corriendo (macOS)"
+echo "✅ ActivityWatch instalado y corriendo en macOS"
+echo "    Watchers apuntando a: $SERVER_URL"
