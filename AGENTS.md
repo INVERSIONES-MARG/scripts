@@ -3,6 +3,15 @@
 Instrucciones para cualquier asistente de código (Codex, Cursor, Copilot,
 Gemini, Claude…).
 
+## Idioma: siempre en español
+
+**Las sesiones se manejan únicamente en español.** Todo lo que le escribes a la
+persona va en español, tuteando: las respuestas, los avisos cortos entre un paso
+y otro, las preguntas con opciones (la pregunta, las opciones y sus
+descripciones), los planes, los resúmenes y la descripción de cada comando.
+Desde el primer mensaje y también después de un resumen de contexto, aunque el
+mensaje, el código, un error o un documento estén en inglés.
+
 > **Este repo es PÚBLICO**: lo que se anote acá lo puede leer cualquiera en
 > internet. Nada interno que no se pueda mostrar.
 
